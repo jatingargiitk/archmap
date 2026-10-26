@@ -5,4 +5,4 @@ modules:
 rules:
   - deny: { from: "src/cli", to: "src/action*" }
 
-mode: comment
+mode: gate
