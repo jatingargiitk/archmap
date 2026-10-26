@@ -1,0 +1,65 @@
+{
+  "name": "@jatingargiitk/archmap",
+  "version": "0.1.0",
+  "description": "Snapshot tests for your architecture. Deterministic module dependency graphs with lockfile diffing.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "archmap": "./dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "action.yml",
+    "skills"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "architecture",
+    "dependencies",
+    "graph",
+    "mermaid",
+    "lockfile",
+    "ci",
+    "github-action"
+  ],
+  "author": "Jatin Garg",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jatingargiitk/archmap.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jatingargiitk/archmap/issues"
+  },
+  "homepage": "https://github.com/jatingargiitk/archmap#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.0",
+    "tsup": "^8.2.4",
+    "typescript": "^5.5.4",
+    "vitest": "^2.0.5"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0",
+    "web-tree-sitter": "^0.22.6"
+  }
+}
