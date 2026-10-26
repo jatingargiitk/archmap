@@ -1,3 +1,6 @@
-#!/usr/bin/env node
+import { runCLI } from './cli/index.js';
 
-console.log('archmap v0.1.0');
+runCLI().catch((error) => {
+  console.error('Error:', error.message);
+  process.exit(1);
+});

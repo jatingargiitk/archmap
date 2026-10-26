@@ -1,0 +1,21 @@
+name: 'archmap'
+description: 'Snapshot tests for your architecture - track module dependencies'
+author: 'Jatin Garg'
+
+branding:
+  icon: 'map'
+  color: 'blue'
+
+runs:
+  using: 'node20'
+  main: 'dist/action.js'
+
+inputs:
+  mode:
+    description: 'Mode: comment (default) or gate'
+    required: false
+    default: 'comment'
+  github-token:
+    description: 'GitHub token for posting comments'
+    required: false
+    default: ${{ github.token }}

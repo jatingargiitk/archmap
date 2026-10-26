@@ -1,0 +1,22 @@
+{
+  "version": "1",
+  "modules": [
+    "dist",
+    "node_modules",
+    "src/action.ts",
+    "src/cli",
+    "src/cli.ts",
+    "src/graph",
+    "src/index.ts",
+    "src/lock",
+    "src/parser",
+    "src/render",
+    "src/resolver",
+    "src/rules",
+    "src/types.ts",
+    "tsup.config.ts",
+    "vitest.config.ts"
+  ],
+  "edges": [],
+  "externalDeps": {}
+}
