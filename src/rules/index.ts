@@ -32,11 +32,8 @@ function checkDenyRule(
 ): RuleViolation[] {
   const violations: RuleViolation[] = [];
 
-  const fromPattern = patternToRegex(deny.from);
-  const toPattern = patternToRegex(deny.to);
-
   for (const edge of edges) {
-    if (fromPattern.test(edge.from) && toPattern.test(edge.to)) {
+    if (matchesPattern(edge.from, deny.from) && matchesPattern(edge.to, deny.to)) {
       violations.push({
         rule: `deny: ${deny.from} → ${deny.to}`,
         edge,
@@ -46,6 +43,34 @@ function checkDenyRule(
   }
 
   return violations;
+}
+
+function matchesPattern(modulePath: string, pattern: string): boolean {
+  // If pattern ends with /**, it should match the directory itself and anything under it
+  // e.g., "ui/**" should match "src/ui", "ui", "foo/ui", and "src/ui/components"
+  if (pattern.endsWith('/**')) {
+    const basePattern = pattern.slice(0, -3); // Remove the /**
+    const regex = patternToRegex(basePattern);
+    
+    // Match if the module path ends with the pattern (e.g., "src/ui" ends with "ui")
+    // or contains the pattern as a segment (e.g., "src/ui/button" contains "ui")
+    if (regex.test(modulePath) || regex.test(modulePath + '/')) {
+      return true;
+    }
+    
+    // Also check if the module path ends with the base pattern
+    const parts = modulePath.split('/');
+    for (let i = 0; i < parts.length; i++) {
+      const segment = parts.slice(i).join('/');
+      if (regex.test(segment) || regex.test(segment + '/')) {
+        return true;
+      }
+    }
+  }
+  
+  // Standard glob matching
+  const regex = patternToRegex(pattern);
+  return regex.test(modulePath) || regex.test(modulePath + '/');
 }
 
 function patternToRegex(pattern: string): RegExp {

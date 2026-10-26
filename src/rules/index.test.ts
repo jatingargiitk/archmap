@@ -3,7 +3,7 @@ import { checkRules, shouldFailCheck } from './index.js';
 import type { ModuleEdge, Config, GraphDiff } from '../types.js';
 
 describe('checkRules', () => {
-  it('should detect deny rule violations', () => {
+  it('should detect deny rule violations with nested paths', () => {
     const edges: ModuleEdge[] = [
       {
         from: 'ui/Button',
@@ -29,6 +29,63 @@ describe('checkRules', () => {
     expect(violations).toHaveLength(1);
     expect(violations[0].edge.from).toBe('ui/Button');
     expect(violations[0].edge.to).toBe('db/users');
+  });
+
+  it('should match deny rules against module names without trailing slash (B2 regression)', () => {
+    const edges: ModuleEdge[] = [
+      {
+        from: 'src/ui',
+        to: 'src/db',
+        weight: 1,
+        locations: [],
+      },
+    ];
+
+    const config: Config = {
+      rules: [
+        {
+          deny: {
+            from: 'src/ui/**',
+            to: 'src/db/**',
+          },
+        },
+      ],
+    };
+
+    const violations = checkRules(edges, config);
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0].edge.from).toBe('src/ui');
+    expect(violations[0].edge.to).toBe('src/db');
+  });
+
+  it('should match README example: ui/** pattern matches src/ui module', () => {
+    const edges: ModuleEdge[] = [
+      {
+        from: 'src/ui',
+        to: 'src/db',
+        weight: 1,
+        locations: [],
+      },
+    ];
+
+    // Exact pattern from README
+    const config: Config = {
+      rules: [
+        {
+          deny: {
+            from: 'ui/**',
+            to: 'db/**',
+          },
+        },
+      ],
+    };
+
+    const violations = checkRules(edges, config);
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0].message).toContain('src/ui');
+    expect(violations[0].message).toContain('src/db');
   });
 
   it('should allow edges that do not violate rules', () => {
