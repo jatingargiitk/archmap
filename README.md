@@ -2,11 +2,7 @@
 
 > **Snapshot tests for your architecture.** Deterministic module dependency graphs with lockfile diffing.
 
-[![npm version](https://img.shields.io/npm/v/@jatingargiitk/archmap)](https://www.npmjs.com/package/@jatingargiitk/archmap)
-[![CI](https://github.com/jatingargiitk/archmap/actions/workflows/ci.yml/badge.svg)](https://github.com/jatingargiitk/archmap/actions)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
-![Deterministic](https://img.shields.io/badge/deterministic-100%25-green)
-![No API Key Required](https://img.shields.io/badge/no_api_key-required-brightgreen)
+**✅ 100% Deterministic • 🔒 No API Keys • 🆓 Free**
 
 **Your AI agent just made `ui/` import `db/`. archmap noticed.**
 
@@ -67,37 +63,9 @@ Think of it as snapshot testing, but for your architecture.
 
 ### After archmap
 
-The PR gets a sticky comment:
-
 ![archmap demo](docs/demo.gif)
 
-```diff
-## 🗺️ archmap
-
-**+1 new edge, -0 removed**
-
-### Changes
-
-```mermaid
-flowchart LR
-  ui[ui] ====> db[db]
-  linkStyle 0 stroke:#00ff00,stroke-width:3px
-```
-
-#### Added Dependencies
-- `ui` → `db`
-
----
-
-To accept these changes, run:
-\```bash
-npx @jatingargiitk/archmap accept
-git add ARCHITECTURE.md archmap.lock.json
-git commit -m "chore: update architecture map"
-\```
-```
-
-Now the reviewer knows exactly what changed architecturally, and the decision is explicit.
+The PR gets a sticky comment showing the new dependency and file location. Now the reviewer knows exactly what changed architecturally, and the decision is explicit.
 
 ---
 
@@ -229,63 +197,9 @@ The `pull_request` workflow mode (default) is unaffected by branch protection.
 
 ---
 
-## Development
+## Contributing
 
-```bash
-git clone https://github.com/jatingargiitk/archmap
-cd archmap
-npm install
-npm test
-npm run build
-```
-
----
-
-## Publish Instructions (for maintainers)
-
-```bash
-# 1. Ensure tests pass and everything is committed
-npm test
-npm run build
-
-# 2. Update version in package.json (if not already done)
-npm version patch  # or minor, or major
-
-# 3. Login to npm (one time)
-npm login
-
-# 4. Publish to npm with provenance
-npm publish --access public --provenance
-
-# 5. Create GitHub release
-git tag v0.1.0
-git push origin v0.1.0
-gh release create v0.1.0 --title "v0.1.0" --notes "Initial release"
-```
-
----
-
-## Regenerating the Demo GIF
-
-The demo GIF is recorded with [VHS](https://github.com/charmbracelet/vhs). To regenerate:
-
-```bash
-# Install dependencies
-# - vhs: https://github.com/charmbracelet/vhs
-# - ttyd: https://github.com/tsl0922/ttyd
-
-# Record the demo
-vhs docs/demo.tape
-
-# Output: docs/demo.gif (~700KB)
-```
-
-The demo shows:
-1. A cross-module import violation (`ui → db`)
-2. `archmap check` detecting the unapproved edge
-3. `archmap diff` showing the new dependency with file:line
-4. `archmap accept` approving the change
-5. `archmap check` passing after acceptance
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup, publishing instructions, and how to regenerate the demo GIF.
 
 ---
 
@@ -297,3 +211,5 @@ MIT © Jatin Garg
 
 **Made for developers reviewing AI-written code.**  
 Track architecture. Make drift visible. Keep understanding your codebase.
+
+Built by [@jatingargiitk](https://x.com/jatingargiitk)
