@@ -49,7 +49,7 @@ function checkDenyRule(
 }
 
 function patternToRegex(pattern: string): RegExp {
-  let regexStr = pattern
+  const regexStr = pattern
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '___DOUBLESTAR___')
     .replace(/\*/g, '[^/]*')

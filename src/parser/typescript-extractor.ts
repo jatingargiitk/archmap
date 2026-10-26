@@ -52,7 +52,7 @@ function extractDynamicImport(node: Node, file: string, content: string): Import
   };
 }
 
-function extractStringValue(node: Node, content: string): string | null {
+function extractStringValue(node: Node, _content: string): string | null {
   const text = node.text;
   if (text.startsWith('"') || text.startsWith("'")) {
     return text.slice(1, -1);

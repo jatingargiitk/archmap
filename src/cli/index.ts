@@ -4,7 +4,7 @@ import { execSync } from 'node:child_process';
 import { extractTypeScriptImports, extractPythonImports } from '../parser/index.js';
 import { resolveImports, loadTsConfig, findWorkspaces } from '../resolver/index.js';
 import { buildGraph } from '../graph/index.js';
-import { renderMermaid, writeArchitectureFile } from '../render/index.js';
+import { writeArchitectureFile } from '../render/index.js';
 import { graphToLock, writeLockFile, readLockFile, diffLocks } from '../lock/index.js';
 import { checkRules, shouldFailCheck } from '../rules/index.js';
 import type { Config } from '../types.js';
@@ -314,7 +314,7 @@ function shouldIgnore(filePath: string, patterns: string[]): boolean {
 }
 
 function patternToRegex(pattern: string): RegExp {
-  let regexStr = pattern
+  const regexStr = pattern
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '___DOUBLESTAR___')
     .replace(/\*/g, '[^/]*')

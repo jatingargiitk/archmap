@@ -1,11 +1,12 @@
 import * as fs from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
 import { extractTypeScriptImports, extractPythonImports } from './parser/index.js';
 import { resolveImports, loadTsConfig, findWorkspaces } from './resolver/index.js';
 import { buildGraph } from './graph/index.js';
 import { writeArchitectureFile, renderDeltaDiagram } from './render/index.js';
-import { graphToLock, writeLockFile, readLockFile, diffLocks } from './lock/index.js';
+import { graphToLock, writeLockFile, diffLocks } from './lock/index.js';
 import { checkRules, shouldFailCheck } from './rules/index.js';
 import type { Config } from './types.js';
 
@@ -97,7 +98,7 @@ async function handlePush(rootDir: string, context: any): Promise<void> {
   }
 }
 
-function buildCommentBody(diff: any, violations: any[], graph: any): string {
+function buildCommentBody(diff: any, violations: any[], _graph: any): string {
   const lines: string[] = [];
 
   lines.push('## 🗺️ archmap');
@@ -243,7 +244,7 @@ function getGitHubContext(): any {
 
   if (eventPath) {
     try {
-      const eventData = require('fs').readFileSync(eventPath, 'utf-8');
+      const eventData = readFileSync(eventPath, 'utf-8');
       event = JSON.parse(eventData);
     } catch {
       // Ignore
@@ -354,7 +355,7 @@ function shouldIgnore(filePath: string, patterns: string[]): boolean {
 }
 
 function patternToRegex(pattern: string): RegExp {
-  let regexStr = pattern
+  const regexStr = pattern
     .replace(/[.+?^${}()|[\]\\]/g, '\\$&')
     .replace(/\*\*/g, '___DOUBLESTAR___')
     .replace(/\*/g, '[^/]*')

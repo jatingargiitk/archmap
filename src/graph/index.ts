@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import type { ResolvedImport, Module, ModuleEdge, Graph, Config } from '../types.js';
+import type { ResolvedImport, Module, ModuleEdge, Graph } from '../types.js';
 
 export interface ModuleConfig {
   roots?: string[];

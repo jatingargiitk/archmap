@@ -145,8 +145,6 @@ export function renderDeltaDiagram(
   touchedModules: Set<string>
 ): string {
   const lines: string[] = ['```mermaid', 'flowchart LR'];
-
-  const allEdges = [...addedEdges, ...removedEdges];
   
   for (const module of touchedModules) {
     const id = sanitizeId(module);

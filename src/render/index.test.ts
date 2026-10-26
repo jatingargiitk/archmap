@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { renderMermaid, writeArchitectureFile, renderDeltaDiagram } from './index.js';
-import type { Graph, Module, ModuleEdge } from '../types.js';
+import type { Graph, ModuleEdge } from '../types.js';
 
 const testDir = path.join(process.cwd(), '.test-render');
 

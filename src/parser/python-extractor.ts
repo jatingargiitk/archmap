@@ -16,7 +16,7 @@ export async function extractPythonImports(filePath: string, content: string): P
   return { file: filePath, imports };
 }
 
-function extractImport(node: Node, file: string, content: string): Import | null {
+function extractImport(node: Node, file: string, _content: string): Import | null {
   if (node.type === 'import_statement') {
     return extractPlainImport(node, file);
   } else if (node.type === 'import_from_statement') {
