@@ -86,7 +86,28 @@ async function resolveRelativePath(
   config: ResolverConfig
 ): Promise<string | null> {
   const dir = path.dirname(fromFile);
-  const candidatePath = path.join(dir, importPath);
+  let candidatePath = path.join(dir, importPath);
+
+  // Handle ESM-style TypeScript imports: map .js/.mjs/.cjs to their TS sources (B3)
+  const esmExt = path.extname(candidatePath);
+  if (esmExt === '.js' || esmExt === '.mjs' || esmExt === '.cjs') {
+    const basePath = candidatePath.slice(0, -esmExt.length);
+    
+    // Map .js -> .ts/.tsx, .mjs -> .mts, .cjs -> .cts
+    const tsExtensions = esmExt === '.mjs' ? ['.mts'] :
+                         esmExt === '.cjs' ? ['.cts'] :
+                         ['.ts', '.tsx'];
+    
+    for (const tsExt of tsExtensions) {
+      const tsPath = basePath + tsExt;
+      if (await fileExists(path.join(config.rootDir, tsPath))) {
+        return tsPath;
+      }
+    }
+    
+    // If no TS source found, continue with normal resolution
+    candidatePath = basePath;
+  }
 
   const extensions = ['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts'];
   

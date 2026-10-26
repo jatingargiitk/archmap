@@ -6,7 +6,7 @@ import { resolveImports, loadTsConfig, findWorkspaces } from '../resolver/index.
 import { buildGraph } from '../graph/index.js';
 import { writeArchitectureFile } from '../render/index.js';
 import { graphToLock, writeLockFile, readLockFile, diffLocks } from '../lock/index.js';
-import { checkRules, shouldFailCheck } from '../rules/index.js';
+import { checkRules } from '../rules/index.js';
 import type { Config } from '../types.js';
 
 export async function runCLI(): Promise<void> {
@@ -90,7 +90,7 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
     }
   }
   
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   
   console.log('\nChanges:');
   console.log(`  +${diff.added.length} new edges`);
@@ -99,7 +99,11 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
   if (diff.added.length > 0) {
     console.log('\nAdded edges:');
     for (const edge of diff.added) {
-      console.log(`  + ${edge.from} → ${edge.to}`);
+      // Show locations (B6)
+      const locationStr = edge.locations.length > 0 
+        ? ` (${edge.locations[0].file}:${edge.locations[0].line})`
+        : '';
+      console.log(`  + ${edge.from} → ${edge.to}${locationStr}`);
     }
   }
   
@@ -132,7 +136,7 @@ async function checkCommand(rootDir: string): Promise<void> {
     process.exit(1);
   }
   
-  const diff = diffLocks(committedLock, currentLock);
+  const diff = diffLocks(committedLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
   
   if (violations.length > 0) {
@@ -144,9 +148,20 @@ async function checkCommand(rootDir: string): Promise<void> {
     process.exit(1);
   }
   
-  if (shouldFailCheck(diff, violations, config)) {
+  // CLI check always fails on unapproved changes, regardless of mode
+  if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log('❌ Unapproved changes detected:');
     console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
+    if (diff.added.length > 0) {
+      console.log('\nAdded edges:');
+      for (const edge of diff.added) {
+        // Show locations (B6)
+        const locationStr = edge.locations.length > 0 
+          ? ` (${edge.locations[0].file}:${edge.locations[0].line})`
+          : '';
+        console.log(`  + ${edge.from} → ${edge.to}${locationStr}`);
+      }
+    }
     console.log('\nRun `archmap diff` to see details');
     console.log('Run `archmap accept` to approve these changes');
     process.exit(1);
@@ -226,10 +241,15 @@ async function analyzeRepo(rootDir: string): Promise<any> {
   
   const files = await findSourceFiles(rootDir, config.ignore || []);
   
+  // Filter files to only those in module roots (B4)
+  const moduleConfig = config.modules || {};
+  const roots = moduleConfig.roots || ['src', 'packages/*', 'apps/*'];
+  const filteredFiles = files.filter(file => matchesAnyRoot(file, roots));
+  
   const allImports = [];
   const allFiles: string[] = [];
   
-  for (const file of files) {
+  for (const file of filteredFiles) {
     const fullPath = path.join(rootDir, file);
     const content = await fs.readFile(fullPath, 'utf-8');
     
@@ -255,23 +275,63 @@ async function analyzeRepo(rootDir: string): Promise<any> {
     workspaces: workspaces.length > 0 ? workspaces : undefined,
   });
   
-  const moduleConfig = config.modules || {};
   const graph = buildGraph(resolved, allFiles, moduleConfig);
   
   return graph;
 }
 
+function matchesAnyRoot(file: string, roots: string[]): boolean {
+  const normalized = file.replace(/\\/g, '/');
+  
+  for (const root of roots) {
+    if (root.endsWith('/*')) {
+      const base = root.slice(0, -2);
+      if (normalized.startsWith(base + '/')) {
+        return true;
+      }
+    } else {
+      if (normalized.startsWith(root + '/') || normalized === root) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 async function findSourceFiles(rootDir: string, ignore: string[]): Promise<string[]> {
   const files: string[] = [];
+  
+  // Load .gitignore patterns (B4)
+  const gitignorePatterns = await loadGitignore(rootDir);
+  
   const ignorePatterns = [
+    'node_modules',
+    'node_modules/**',
     '**/node_modules/**',
+    'dist',
+    'dist/**',
     '**/dist/**',
+    'build',
+    'build/**',
     '**/build/**',
+    '.git',
+    '.git/**',
     '**/.git/**',
     '**/coverage/**',
     '**/*.test.*',
     '**/*.spec.*',
     '**/__tests__/**',
+    // Ignore root-level config files (B4)
+    '*.config.*',
+    '*.json',
+    '*.md',
+    '*.yml',
+    '*.yaml',
+    '.eslintrc.*',
+    '.gitignore',
+    'LICENSE',
+    ...gitignorePatterns,
     ...ignore,
   ];
   
@@ -298,6 +358,27 @@ async function findSourceFiles(rootDir: string, ignore: string[]): Promise<strin
   
   await walk(rootDir);
   return files;
+}
+
+async function loadGitignore(rootDir: string): Promise<string[]> {
+  try {
+    const gitignorePath = path.join(rootDir, '.gitignore');
+    const content = await fs.readFile(gitignorePath, 'utf-8');
+    
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'))
+      .map(pattern => {
+        // Convert gitignore patterns to glob patterns
+        if (pattern.endsWith('/')) {
+          return pattern.slice(0, -1) + '/**';
+        }
+        return pattern;
+      });
+  } catch {
+    return [];
+  }
 }
 
 function shouldIgnore(filePath: string, patterns: string[]): boolean {

@@ -46,23 +46,32 @@ export async function readLockFile(filePath: string): Promise<LockFile | null> {
   }
 }
 
-export function diffLocks(oldLock: LockFile | null, newLock: LockFile): GraphDiff {
+export function diffLocks(oldLock: LockFile | null, newLock: LockFile, newGraph?: Graph): GraphDiff {
   const oldEdges = oldLock?.edges || [];
   const newEdges = newLock.edges;
 
   const oldEdgeSet = new Set(oldEdges.map(edgeKey));
   const newEdgeSet = new Set(newEdges.map(edgeKey));
 
+  // Build a map from edge key to full edge with locations (B6)
+  const edgeLocationMap = new Map<string, ModuleEdge>();
+  if (newGraph) {
+    for (const edge of newGraph.edges) {
+      edgeLocationMap.set(edgeKey(edge), edge);
+    }
+  }
+
   const added: ModuleEdge[] = [];
   const removed: ModuleEdge[] = [];
 
   for (const edge of newEdges) {
     if (!oldEdgeSet.has(edgeKey(edge))) {
+      const fullEdge = edgeLocationMap.get(edgeKey(edge));
       added.push({
         from: edge.from,
         to: edge.to,
         weight: edge.weight,
-        locations: [],
+        locations: fullEdge?.locations || [],
       });
     }
   }

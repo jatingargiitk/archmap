@@ -105,6 +105,51 @@ describe('resolveImports', () => {
     expect(resolved).toHaveLength(1);
     expect(resolved[0].to).toBe('src/__init__.py');
   });
+
+  it('should resolve ESM-style TS imports with .js suffix to .ts files (B3 regression)', async () => {
+    await createTestFile('src/foo.ts');
+    await createTestFile('src/bar.ts');
+
+    const fileImports: FileImports[] = [
+      {
+        file: 'src/foo.ts',
+        imports: [
+          {
+            from: './bar.js',
+            location: { file: 'src/foo.ts', line: 1, column: 0 },
+          },
+        ],
+      },
+    ];
+
+    const resolved = await resolveImports(fileImports, { rootDir: testDir });
+
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0].from).toBe('src/foo.ts');
+    expect(resolved[0].to).toBe('src/bar.ts');
+  });
+
+  it('should resolve .mjs imports to .mts files', async () => {
+    await createTestFile('src/foo.mts');
+    await createTestFile('src/bar.mts');
+
+    const fileImports: FileImports[] = [
+      {
+        file: 'src/foo.mts',
+        imports: [
+          {
+            from: './bar.mjs',
+            location: { file: 'src/foo.mts', line: 1, column: 0 },
+          },
+        ],
+      },
+    ];
+
+    const resolved = await resolveImports(fileImports, { rootDir: testDir });
+
+    expect(resolved).toHaveLength(1);
+    expect(resolved[0].to).toBe('src/bar.mts');
+  });
 });
 
 describe('loadTsConfig', () => {

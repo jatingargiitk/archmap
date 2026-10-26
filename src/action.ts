@@ -54,7 +54,7 @@ async function handlePullRequest(
     console.log('⚠️  No lock file found in base branch');
   }
 
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
 
   const commentBody = buildCommentBody(diff, violations, currentGraph);
@@ -138,7 +138,13 @@ function buildCommentBody(diff: any, violations: any[], _graph: any): string {
       lines.push('#### Added Dependencies');
       lines.push('');
       for (const edge of diff.added) {
-        lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
+        // Show locations (B6)
+        if (edge.locations && edge.locations.length > 0) {
+          const loc = edge.locations[0];
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+        } else {
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
+        }
       }
       lines.push('');
     }
@@ -371,13 +377,22 @@ function isSourceFile(name: string): boolean {
 async function loadConfig(rootDir: string): Promise<Config> {
   const configPath = path.join(rootDir, 'archmap.yml');
 
+  let config: Config = {};
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     const yaml = await import('js-yaml');
-    return yaml.load(content) as Config;
+    config = yaml.load(content) as Config;
   } catch {
-    return {};
+    config = {};
   }
+
+  // Override with INPUT_MODE if provided (B7)
+  const inputMode = process.env.INPUT_MODE;
+  if (inputMode === 'comment' || inputMode === 'gate') {
+    config.mode = inputMode;
+  }
+
+  return config;
 }
 
 runAction().catch((error) => {
