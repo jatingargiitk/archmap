@@ -69,9 +69,7 @@ Think of it as snapshot testing, but for your architecture.
 
 The PR gets a sticky comment:
 
-<img src="https://placeholder.svg?text=GIF+Placeholder+-+Recording+coming+soon" width="600" alt="archmap PR comment showing new ui → db edge" />
-
-**⚠️ GIF Placeholder:** Record a 10-second demo showing an AI agent PR adding `ui → db`, the sticky comment appearing with the green edge, and the reviewer clicking accept.
+![archmap demo](docs/demo.gif)
 
 ```diff
 ## 🗺️ archmap
@@ -252,41 +250,27 @@ gh release create v0.1.0 --title "v0.1.0" --notes "Initial release"
 
 ---
 
-## Recording the Demo GIF
+## Regenerating the Demo GIF
 
-To record the hero GIF mentioned in the README:
+The demo GIF is recorded with [VHS](https://github.com/charmbracelet/vhs). To regenerate:
 
-1. **Set up a test repository:**
-   ```bash
-   mkdir archmap-demo && cd archmap-demo
-   git init && git checkout -b main
-   npx @jatingargiitk/archmap init
-   git add . && git commit -m "init"
-   ```
+```bash
+# Install dependencies
+# - vhs: https://github.com/charmbracelet/vhs
+# - ttyd: https://github.com/tsl0922/ttyd
 
-2. **Create a violation:**
-   ```bash
-   mkdir -p src/ui src/db
-   echo 'import { getUser } from "../db/users";' > src/ui/Button.ts
-   echo 'export const getUser = () => {};' > src/db/users.ts
-   npx @jatingargiitk/archmap render
-   git add . && git commit -m "baseline"
-   ```
+# Record the demo
+vhs docs/demo.tape
 
-3. **Create a PR with Claude/Cursor:**
-   - Ask the agent: "Add a UserProfile component that fetches from the database"
-   - Let it create `src/ui/UserProfile.tsx` with an import from `src/db/`
-   - Push to a branch and open a PR
+# Output: docs/demo.gif (~700KB)
+```
 
-4. **Record:**
-   - Screen record the PR page
-   - Show the archmap comment appearing
-   - Show the green edge in the Mermaid diagram
-   - Show clicking "accept" or running the command
-   - Keep it under 10 seconds
-
-5. **Replace the placeholder:**
-   - Replace the SVG placeholder in README.md with the GIF URL
+The demo shows:
+1. A cross-module import violation (`ui → db`)
+2. `archmap check` detecting the unapproved edge
+3. `archmap diff` showing the new dependency with file:line
+4. `archmap accept` approving the change
+5. `archmap check` passing after acceptance
 
 ---
 
