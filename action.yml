@@ -7,8 +7,25 @@ branding:
   color: 'blue'
 
 runs:
-  using: 'node20'
-  main: 'dist/action.js'
+  using: 'composite'
+  steps:
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    
+    - name: Install dependencies
+      shell: bash
+      run: |
+        cd ${{ github.action_path }}
+        npm ci --omit=dev
+    
+    - name: Run archmap
+      shell: bash
+      run: node ${{ github.action_path }}/dist/action.js
+      env:
+        INPUT_MODE: ${{ inputs.mode }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
 
 inputs:
   mode:

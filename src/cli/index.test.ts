@@ -79,4 +79,26 @@ describe('CLI check command', () => {
     
     expect(result).toContain('✅ No unapproved changes');
   });
+
+  it('should generate workflow that uses the GitHub Action', async () => {
+    // Run init
+    execSync(`node ${cliPath} init`, { cwd: testDir });
+    
+    // Verify workflow file was created
+    const workflowPath = path.join(testDir, '.github/workflows/archmap.yml');
+    const workflowContent = await fs.readFile(workflowPath, 'utf-8');
+    
+    // Assert workflow uses the Action, not CLI commands
+    expect(workflowContent).toContain('uses: jatingargiitk/archmap@v0');
+    expect(workflowContent).toContain('on:');
+    expect(workflowContent).toContain('pull_request:');
+    expect(workflowContent).toContain('permissions:');
+    expect(workflowContent).toContain('contents: write');
+    expect(workflowContent).toContain('pull-requests: write');
+    
+    // Must NOT contain the buggy npx commands
+    expect(workflowContent).not.toContain('npx @jatingargiitk/archmap render');
+    expect(workflowContent).not.toContain('npx @jatingargiitk/archmap check');
+    expect(workflowContent).not.toContain('|| true');
+  });
 });

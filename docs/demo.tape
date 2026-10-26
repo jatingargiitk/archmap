@@ -8,42 +8,42 @@ Set Theme "Dracula"
 
 Type "cd /tmp/archmap-demo"
 Enter
-Sleep 300ms
+Sleep 500ms
 
-Type "# Current violation: ui → db"
+Type "# New cross-module import added"
 Enter
 Type "cat src/ui/Button.ts"
 Enter
-Sleep 1.2s
+Sleep 1s
 
 Type ""
 Enter
-Type "# archmap check detects it"
+Type "# archmap check fails (exit 1)"
 Enter
-Type "/workspace/dist/cli.js check"
-Enter
-Sleep 1.5s
-
-Type ""
-Enter
-Type "# Show the diff with file:line"
-Enter
-Type "/workspace/dist/cli.js diff"
+Type "npx @jatingargiitk/archmap check"
 Enter
 Sleep 2s
 
 Type ""
 Enter
-Type "# Accept the new edge"
+Type "# Shows file:line locations"
 Enter
-Type "/workspace/dist/cli.js accept"
+Type "npx @jatingargiitk/archmap diff"
 Enter
-Sleep 1s
+Sleep 2s
+
+Type ""
+Enter
+Type "# Accept the architectural change"
+Enter
+Type "npx @jatingargiitk/archmap accept"
+Enter
+Sleep 1.5s
 
 Type ""
 Enter
 Type "# Now check passes ✅"
 Enter
-Type "/workspace/dist/cli.js check"
+Type "npx @jatingargiitk/archmap check"
 Enter
-Sleep 1s
+Sleep 1.5s

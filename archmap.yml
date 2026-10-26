@@ -1,0 +1,9 @@
+modules:
+  roots: [src]
+  depth: 1
+
+rules:
+  - deny: { from: "src/cli", to: "src/action*" }
+  - deny: { from: "src/parser", to: "src/resolver" }
+
+mode: comment

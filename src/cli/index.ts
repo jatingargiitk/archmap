@@ -199,8 +199,6 @@ async function initCommand(rootDir: string): Promise<void> {
 
 on:
   pull_request:
-  push:
-    branches: [main]
 
 permissions:
   contents: write
@@ -211,14 +209,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      
-      - run: npx @jatingargiitk/archmap render
-      
-      - run: npx @jatingargiitk/archmap check || true
+      - uses: jatingargiitk/archmap@v0
 `;
   
   await fs.writeFile(workflowPath, workflow, 'utf-8');
