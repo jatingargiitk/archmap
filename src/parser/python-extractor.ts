@@ -1,4 +1,4 @@
-import type { SyntaxNode } from 'web-tree-sitter';
+import type { Node } from 'web-tree-sitter';
 import type { Import, FileImports, Location } from '../types.js';
 import { parseFile } from './tree-sitter-loader.js';
 
@@ -16,7 +16,7 @@ export async function extractPythonImports(filePath: string, content: string): P
   return { file: filePath, imports };
 }
 
-function extractImport(node: SyntaxNode, file: string, content: string): Import | null {
+function extractImport(node: Node, file: string, content: string): Import | null {
   if (node.type === 'import_statement') {
     return extractPlainImport(node, file);
   } else if (node.type === 'import_from_statement') {
@@ -25,7 +25,7 @@ function extractImport(node: SyntaxNode, file: string, content: string): Import 
   return null;
 }
 
-function extractPlainImport(node: SyntaxNode, file: string): Import | null {
+function extractPlainImport(node: Node, file: string): Import | null {
   const nameNode = node.childForFieldName('name');
   if (!nameNode) return null;
 
@@ -38,7 +38,7 @@ function extractPlainImport(node: SyntaxNode, file: string): Import | null {
   };
 }
 
-function extractFromImport(node: SyntaxNode, file: string): Import | null {
+function extractFromImport(node: Node, file: string): Import | null {
   const moduleNode = node.childForFieldName('module_name');
   if (!moduleNode) return null;
 
@@ -51,7 +51,7 @@ function extractFromImport(node: SyntaxNode, file: string): Import | null {
   };
 }
 
-function getModuleName(node: SyntaxNode): string | null {
+function getModuleName(node: Node): string | null {
   if (node.type === 'dotted_name') {
     return node.text;
   } else if (node.type === 'relative_import') {
@@ -65,7 +65,7 @@ function getModuleName(node: SyntaxNode): string | null {
   return node.text || null;
 }
 
-function getLocation(node: SyntaxNode, file: string): Location {
+function getLocation(node: Node, file: string): Location {
   return {
     file,
     line: node.startPosition.row + 1,
@@ -73,7 +73,7 @@ function getLocation(node: SyntaxNode, file: string): Location {
   };
 }
 
-function visitNode(node: SyntaxNode, visitor: (node: SyntaxNode) => void): void {
+function visitNode(node: Node, visitor: (node: Node) => void): void {
   visitor(node);
   for (const child of node.children) {
     visitNode(child, visitor);

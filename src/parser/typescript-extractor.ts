@@ -1,4 +1,4 @@
-import type { SyntaxNode } from 'web-tree-sitter';
+import type { Node } from 'web-tree-sitter';
 import type { Import, FileImports, Location } from '../types.js';
 import { parseFile } from './tree-sitter-loader.js';
 
@@ -19,7 +19,7 @@ export async function extractTypeScriptImports(filePath: string, content: string
   return { file: filePath, imports };
 }
 
-function extractImportStatement(node: SyntaxNode, file: string, content: string): Import | null {
+function extractImportStatement(node: Node, file: string, content: string): Import | null {
   const sourceNode = node.childForFieldName('source');
   if (!sourceNode) return null;
 
@@ -32,14 +32,14 @@ function extractImportStatement(node: SyntaxNode, file: string, content: string)
   };
 }
 
-function extractDynamicImport(node: SyntaxNode, file: string, content: string): Import | null {
+function extractDynamicImport(node: Node, file: string, content: string): Import | null {
   const func = node.childForFieldName('function');
   if (!func || func.text !== 'import') return null;
 
   const args = node.childForFieldName('arguments');
   if (!args) return null;
 
-  const firstArg = args.children.find((c) => c.type === 'string' || c.type === 'template_string');
+  const firstArg = args.children.find((c: Node) => c.type === 'string' || c.type === 'template_string');
   if (!firstArg) return null;
 
   const from = extractStringValue(firstArg, content);
@@ -52,7 +52,7 @@ function extractDynamicImport(node: SyntaxNode, file: string, content: string): 
   };
 }
 
-function extractStringValue(node: SyntaxNode, content: string): string | null {
+function extractStringValue(node: Node, content: string): string | null {
   const text = node.text;
   if (text.startsWith('"') || text.startsWith("'")) {
     return text.slice(1, -1);
@@ -66,7 +66,7 @@ function extractStringValue(node: SyntaxNode, content: string): string | null {
   return null;
 }
 
-function getLocation(node: SyntaxNode, file: string): Location {
+function getLocation(node: Node, file: string): Location {
   return {
     file,
     line: node.startPosition.row + 1,
@@ -74,7 +74,7 @@ function getLocation(node: SyntaxNode, file: string): Location {
   };
 }
 
-function visitNode(node: SyntaxNode, visitor: (node: SyntaxNode) => void): void {
+function visitNode(node: Node, visitor: (node: Node) => void): void {
   visitor(node);
   for (const child of node.children) {
     visitNode(child, visitor);

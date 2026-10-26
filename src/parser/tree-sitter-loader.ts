@@ -39,5 +39,9 @@ export async function parseFile(content: string, language: 'typescript' | 'pytho
   const lang = await loadLanguage(language);
   const parser = new Parser();
   parser.setLanguage(lang);
-  return parser.parse(content);
+  const tree = parser.parse(content);
+  if (!tree) {
+    throw new Error(`Failed to parse file with language: ${language}`);
+  }
+  return tree;
 }
