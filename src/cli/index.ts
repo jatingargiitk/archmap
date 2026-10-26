@@ -6,7 +6,7 @@ import { resolveImports, loadTsConfig, findWorkspaces } from '../resolver/index.
 import { buildGraph } from '../graph/index.js';
 import { writeArchitectureFile } from '../render/index.js';
 import { graphToLock, writeLockFile, readLockFile, diffLocks } from '../lock/index.js';
-import { checkRules, shouldFailCheck } from '../rules/index.js';
+import { checkRules } from '../rules/index.js';
 import type { Config } from '../types.js';
 
 export async function runCLI(): Promise<void> {
@@ -144,7 +144,8 @@ async function checkCommand(rootDir: string): Promise<void> {
     process.exit(1);
   }
   
-  if (shouldFailCheck(diff, violations, config)) {
+  // CLI check always fails on unapproved changes, regardless of mode
+  if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log('❌ Unapproved changes detected:');
     console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
     console.log('\nRun `archmap diff` to see details');
