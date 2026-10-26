@@ -1,0 +1,8 @@
+modules:
+  roots: [src]
+  depth: 1
+
+rules:
+  - deny: { from: "src/cli", to: "src/action*" }
+
+mode: comment

@@ -8,6 +8,8 @@ import { writeArchitectureFile } from '../render/index.js';
 import { graphToLock, writeLockFile, readLockFile, diffLocks } from '../lock/index.js';
 import { checkRules } from '../rules/index.js';
 import type { Config } from '../types.js';
+// Demo: forbidden import for testing archmap Action
+import type { Config as _ActionConfig } from '../action.js';
 
 export async function runCLI(): Promise<void> {
   const args = process.argv.slice(2);
