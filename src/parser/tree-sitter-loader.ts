@@ -1,4 +1,4 @@
-import Parser from 'web-tree-sitter';
+import { Parser, Language } from 'web-tree-sitter';
 
 let parserInitialized = false;
 
@@ -8,9 +8,9 @@ export async function initParser(): Promise<void> {
   parserInitialized = true;
 }
 
-const languageCache = new Map<string, Parser.Language>();
+const languageCache = new Map<string, Language>();
 
-export async function loadLanguage(name: 'typescript' | 'python'): Promise<Parser.Language> {
+export async function loadLanguage(name: 'typescript' | 'python'): Promise<Language> {
   if (languageCache.has(name)) {
     return languageCache.get(name)!;
   }
@@ -18,7 +18,7 @@ export async function loadLanguage(name: 'typescript' | 'python'): Promise<Parse
   await initParser();
   
   const wasmPath = await getWasmPath(name);
-  const language = await Parser.Language.load(wasmPath);
+  const language = await Language.load(wasmPath);
   languageCache.set(name, language);
   
   return language;
@@ -35,7 +35,7 @@ async function getWasmPath(name: string): Promise<string> {
   }
 }
 
-export async function parseFile(content: string, language: 'typescript' | 'python'): Promise<Parser.Tree> {
+export async function parseFile(content: string, language: 'typescript' | 'python'): Promise<import('web-tree-sitter').Tree> {
   const lang = await loadLanguage(language);
   const parser = new Parser();
   parser.setLanguage(lang);

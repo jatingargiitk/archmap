@@ -1,4 +1,4 @@
-import type Parser from 'web-tree-sitter';
+import type { SyntaxNode } from 'web-tree-sitter';
 import type { Import, FileImports, Location } from '../types.js';
 import { parseFile } from './tree-sitter-loader.js';
 
@@ -19,7 +19,7 @@ export async function extractTypeScriptImports(filePath: string, content: string
   return { file: filePath, imports };
 }
 
-function extractImportStatement(node: Parser.SyntaxNode, file: string, content: string): Import | null {
+function extractImportStatement(node: SyntaxNode, file: string, content: string): Import | null {
   const sourceNode = node.childForFieldName('source');
   if (!sourceNode) return null;
 
@@ -32,7 +32,7 @@ function extractImportStatement(node: Parser.SyntaxNode, file: string, content: 
   };
 }
 
-function extractDynamicImport(node: Parser.SyntaxNode, file: string, content: string): Import | null {
+function extractDynamicImport(node: SyntaxNode, file: string, content: string): Import | null {
   const func = node.childForFieldName('function');
   if (!func || func.text !== 'import') return null;
 
@@ -52,7 +52,7 @@ function extractDynamicImport(node: Parser.SyntaxNode, file: string, content: st
   };
 }
 
-function extractStringValue(node: Parser.SyntaxNode, content: string): string | null {
+function extractStringValue(node: SyntaxNode, content: string): string | null {
   const text = node.text;
   if (text.startsWith('"') || text.startsWith("'")) {
     return text.slice(1, -1);
@@ -66,7 +66,7 @@ function extractStringValue(node: Parser.SyntaxNode, content: string): string | 
   return null;
 }
 
-function getLocation(node: Parser.SyntaxNode, file: string): Location {
+function getLocation(node: SyntaxNode, file: string): Location {
   return {
     file,
     line: node.startPosition.row + 1,
@@ -74,7 +74,7 @@ function getLocation(node: Parser.SyntaxNode, file: string): Location {
   };
 }
 
-function visitNode(node: Parser.SyntaxNode, visitor: (node: Parser.SyntaxNode) => void): void {
+function visitNode(node: SyntaxNode, visitor: (node: SyntaxNode) => void): void {
   visitor(node);
   for (const child of node.children) {
     visitNode(child, visitor);
