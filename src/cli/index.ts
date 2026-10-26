@@ -6,6 +6,7 @@ import { resolveImports, loadTsConfig, findWorkspaces } from '../resolver/index.
 import { buildGraph } from '../graph/index.js';
 import { renderMermaid, writeArchitectureFile } from '../render/index.js';
 import { graphToLock, writeLockFile, readLockFile, diffLocks } from '../lock/index.js';
+import { checkRules, shouldFailCheck } from '../rules/index.js';
 import type { Config } from '../types.js';
 
 export async function runCLI(): Promise<void> {
@@ -120,6 +121,7 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
 async function checkCommand(rootDir: string): Promise<void> {
   console.log('🔍 Checking for unapproved changes...');
   
+  const config = await loadConfig(rootDir);
   const currentGraph = await analyzeRepo(rootDir);
   const currentLock = graphToLock(currentGraph);
   
@@ -131,8 +133,18 @@ async function checkCommand(rootDir: string): Promise<void> {
   }
   
   const diff = diffLocks(committedLock, currentLock);
+  const violations = checkRules(currentGraph.edges, config);
   
-  if (diff.added.length > 0 || diff.removed.length > 0) {
+  if (violations.length > 0) {
+    console.log('❌ Rule violations detected:');
+    for (const violation of violations) {
+      console.log(`   ${violation.message}`);
+      console.log(`   Rule: ${violation.rule}`);
+    }
+    process.exit(1);
+  }
+  
+  if (shouldFailCheck(diff, violations, config)) {
     console.log('❌ Unapproved changes detected:');
     console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
     console.log('\nRun `archmap diff` to see details');
