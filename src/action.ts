@@ -377,13 +377,22 @@ function isSourceFile(name: string): boolean {
 async function loadConfig(rootDir: string): Promise<Config> {
   const configPath = path.join(rootDir, 'archmap.yml');
 
+  let config: Config = {};
   try {
     const content = await fs.readFile(configPath, 'utf-8');
     const yaml = await import('js-yaml');
-    return yaml.load(content) as Config;
+    config = yaml.load(content) as Config;
   } catch {
-    return {};
+    config = {};
   }
+
+  // Override with INPUT_MODE if provided (B7)
+  const inputMode = process.env.INPUT_MODE;
+  if (inputMode === 'comment' || inputMode === 'gate') {
+    config.mode = inputMode;
+  }
+
+  return config;
 }
 
 runAction().catch((error) => {

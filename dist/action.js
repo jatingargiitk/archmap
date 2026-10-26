@@ -317,13 +317,19 @@ function isSourceFile(name) {
 }
 async function loadConfig(rootDir) {
   const configPath = path.join(rootDir, "archmap.yml");
+  let config = {};
   try {
     const content = await fs.readFile(configPath, "utf-8");
     const yaml = await import("js-yaml");
-    return yaml.load(content);
+    config = yaml.load(content);
   } catch {
-    return {};
+    config = {};
   }
+  const inputMode = process.env.INPUT_MODE;
+  if (inputMode === "comment" || inputMode === "gate") {
+    config.mode = inputMode;
+  }
+  return config;
 }
 runAction().catch((error) => {
   console.error("Error:", error.message);
