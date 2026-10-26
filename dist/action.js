@@ -13,7 +13,7 @@ import {
   shouldFailCheck,
   writeArchitectureFile,
   writeLockFile
-} from "./chunk-BCM7DLU6.js";
+} from "./chunk-UVZVBM2N.js";
 
 // src/action.ts
 import * as fs from "fs/promises";
@@ -50,7 +50,7 @@ async function handlePullRequest(rootDir, currentGraph, currentLock, config, con
   } catch {
     console.log("\u26A0\uFE0F  No lock file found in base branch");
   }
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
   const commentBody = buildCommentBody(diff, violations, currentGraph);
   if (process.env.GITHUB_TOKEN && context.prNumber) {
@@ -120,7 +120,12 @@ function buildCommentBody(diff, violations, _graph) {
       lines.push("#### Added Dependencies");
       lines.push("");
       for (const edge of diff.added) {
-        lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\``);
+        if (edge.locations && edge.locations.length > 0) {
+          const loc = edge.locations[0];
+          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+        } else {
+          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\``);
+        }
       }
       lines.push("");
     }

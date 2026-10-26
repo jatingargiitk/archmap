@@ -728,20 +728,27 @@ async function readLockFile(filePath) {
     return null;
   }
 }
-function diffLocks(oldLock, newLock) {
+function diffLocks(oldLock, newLock, newGraph) {
   const oldEdges = oldLock?.edges || [];
   const newEdges = newLock.edges;
   const oldEdgeSet = new Set(oldEdges.map(edgeKey));
   const newEdgeSet = new Set(newEdges.map(edgeKey));
+  const edgeLocationMap = /* @__PURE__ */ new Map();
+  if (newGraph) {
+    for (const edge of newGraph.edges) {
+      edgeLocationMap.set(edgeKey(edge), edge);
+    }
+  }
   const added = [];
   const removed = [];
   for (const edge of newEdges) {
     if (!oldEdgeSet.has(edgeKey(edge))) {
+      const fullEdge = edgeLocationMap.get(edgeKey(edge));
       added.push({
         from: edge.from,
         to: edge.to,
         weight: edge.weight,
-        locations: []
+        locations: fullEdge?.locations || []
       });
     }
   }

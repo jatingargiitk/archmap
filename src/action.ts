@@ -54,7 +54,7 @@ async function handlePullRequest(
     console.log('⚠️  No lock file found in base branch');
   }
 
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
 
   const commentBody = buildCommentBody(diff, violations, currentGraph);
@@ -138,7 +138,13 @@ function buildCommentBody(diff: any, violations: any[], _graph: any): string {
       lines.push('#### Added Dependencies');
       lines.push('');
       for (const edge of diff.added) {
-        lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
+        // Show locations (B6)
+        if (edge.locations && edge.locations.length > 0) {
+          const loc = edge.locations[0];
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+        } else {
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
+        }
       }
       lines.push('');
     }

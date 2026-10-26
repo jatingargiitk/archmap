@@ -90,7 +90,7 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
     }
   }
   
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   
   console.log('\nChanges:');
   console.log(`  +${diff.added.length} new edges`);
@@ -99,7 +99,11 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
   if (diff.added.length > 0) {
     console.log('\nAdded edges:');
     for (const edge of diff.added) {
-      console.log(`  + ${edge.from} → ${edge.to}`);
+      // Show locations (B6)
+      const locationStr = edge.locations.length > 0 
+        ? ` (${edge.locations[0].file}:${edge.locations[0].line})`
+        : '';
+      console.log(`  + ${edge.from} → ${edge.to}${locationStr}`);
     }
   }
   
@@ -132,7 +136,7 @@ async function checkCommand(rootDir: string): Promise<void> {
     process.exit(1);
   }
   
-  const diff = diffLocks(committedLock, currentLock);
+  const diff = diffLocks(committedLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
   
   if (violations.length > 0) {
@@ -148,6 +152,16 @@ async function checkCommand(rootDir: string): Promise<void> {
   if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log('❌ Unapproved changes detected:');
     console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
+    if (diff.added.length > 0) {
+      console.log('\nAdded edges:');
+      for (const edge of diff.added) {
+        // Show locations (B6)
+        const locationStr = edge.locations.length > 0 
+          ? ` (${edge.locations[0].file}:${edge.locations[0].line})`
+          : '';
+        console.log(`  + ${edge.from} → ${edge.to}${locationStr}`);
+      }
+    }
     console.log('\nRun `archmap diff` to see details');
     console.log('Run `archmap accept` to approve these changes');
     process.exit(1);

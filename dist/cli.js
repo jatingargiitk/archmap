@@ -12,7 +12,7 @@ import {
   resolveImports,
   writeArchitectureFile,
   writeLockFile
-} from "./chunk-BCM7DLU6.js";
+} from "./chunk-UVZVBM2N.js";
 
 // src/cli/index.ts
 import * as fs from "fs/promises";
@@ -85,14 +85,15 @@ async function diffCommand(rootDir, args) {
       baseLock = null;
     }
   }
-  const diff = diffLocks(baseLock, currentLock);
+  const diff = diffLocks(baseLock, currentLock, currentGraph);
   console.log("\nChanges:");
   console.log(`  +${diff.added.length} new edges`);
   console.log(`  -${diff.removed.length} removed edges`);
   if (diff.added.length > 0) {
     console.log("\nAdded edges:");
     for (const edge of diff.added) {
-      console.log(`  + ${edge.from} \u2192 ${edge.to}`);
+      const locationStr = edge.locations.length > 0 ? ` (${edge.locations[0].file}:${edge.locations[0].line})` : "";
+      console.log(`  + ${edge.from} \u2192 ${edge.to}${locationStr}`);
     }
   }
   if (diff.removed.length > 0) {
@@ -119,7 +120,7 @@ async function checkCommand(rootDir) {
     console.log("\u274C No lock file found. Run `archmap accept` to create one.");
     process.exit(1);
   }
-  const diff = diffLocks(committedLock, currentLock);
+  const diff = diffLocks(committedLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
   if (violations.length > 0) {
     console.log("\u274C Rule violations detected:");
@@ -132,6 +133,13 @@ async function checkCommand(rootDir) {
   if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log("\u274C Unapproved changes detected:");
     console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
+    if (diff.added.length > 0) {
+      console.log("\nAdded edges:");
+      for (const edge of diff.added) {
+        const locationStr = edge.locations.length > 0 ? ` (${edge.locations[0].file}:${edge.locations[0].line})` : "";
+        console.log(`  + ${edge.from} \u2192 ${edge.to}${locationStr}`);
+      }
+    }
     console.log("\nRun `archmap diff` to see details");
     console.log("Run `archmap accept` to approve these changes");
     process.exit(1);

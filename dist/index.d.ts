@@ -103,7 +103,7 @@ declare function renderDeltaDiagram(addedEdges: ModuleEdge[], removedEdges: Modu
 declare function graphToLock(graph: Graph): LockFile;
 declare function writeLockFile(filePath: string, lock: LockFile): Promise<void>;
 declare function readLockFile(filePath: string): Promise<LockFile | null>;
-declare function diffLocks(oldLock: LockFile | null, newLock: LockFile): GraphDiff;
+declare function diffLocks(oldLock: LockFile | null, newLock: LockFile, newGraph?: Graph): GraphDiff;
 
 declare const version = "0.1.0";
 
