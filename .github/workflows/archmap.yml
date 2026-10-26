@@ -12,4 +12,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: jatingargiitk/archmap@v0
+      - uses: jatingargiitk/archmap@cursor/fix-init-workflow-5bc1
