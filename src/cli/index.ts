@@ -227,10 +227,15 @@ async function analyzeRepo(rootDir: string): Promise<any> {
   
   const files = await findSourceFiles(rootDir, config.ignore || []);
   
+  // Filter files to only those in module roots (B4)
+  const moduleConfig = config.modules || {};
+  const roots = moduleConfig.roots || ['src', 'packages/*', 'apps/*'];
+  const filteredFiles = files.filter(file => matchesAnyRoot(file, roots));
+  
   const allImports = [];
   const allFiles: string[] = [];
   
-  for (const file of files) {
+  for (const file of filteredFiles) {
     const fullPath = path.join(rootDir, file);
     const content = await fs.readFile(fullPath, 'utf-8');
     
@@ -256,23 +261,63 @@ async function analyzeRepo(rootDir: string): Promise<any> {
     workspaces: workspaces.length > 0 ? workspaces : undefined,
   });
   
-  const moduleConfig = config.modules || {};
   const graph = buildGraph(resolved, allFiles, moduleConfig);
   
   return graph;
 }
 
+function matchesAnyRoot(file: string, roots: string[]): boolean {
+  const normalized = file.replace(/\\/g, '/');
+  
+  for (const root of roots) {
+    if (root.endsWith('/*')) {
+      const base = root.slice(0, -2);
+      if (normalized.startsWith(base + '/')) {
+        return true;
+      }
+    } else {
+      if (normalized.startsWith(root + '/') || normalized === root) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 async function findSourceFiles(rootDir: string, ignore: string[]): Promise<string[]> {
   const files: string[] = [];
+  
+  // Load .gitignore patterns (B4)
+  const gitignorePatterns = await loadGitignore(rootDir);
+  
   const ignorePatterns = [
+    'node_modules',
+    'node_modules/**',
     '**/node_modules/**',
+    'dist',
+    'dist/**',
     '**/dist/**',
+    'build',
+    'build/**',
     '**/build/**',
+    '.git',
+    '.git/**',
     '**/.git/**',
     '**/coverage/**',
     '**/*.test.*',
     '**/*.spec.*',
     '**/__tests__/**',
+    // Ignore root-level config files (B4)
+    '*.config.*',
+    '*.json',
+    '*.md',
+    '*.yml',
+    '*.yaml',
+    '.eslintrc.*',
+    '.gitignore',
+    'LICENSE',
+    ...gitignorePatterns,
     ...ignore,
   ];
   
@@ -299,6 +344,27 @@ async function findSourceFiles(rootDir: string, ignore: string[]): Promise<strin
   
   await walk(rootDir);
   return files;
+}
+
+async function loadGitignore(rootDir: string): Promise<string[]> {
+  try {
+    const gitignorePath = path.join(rootDir, '.gitignore');
+    const content = await fs.readFile(gitignorePath, 'utf-8');
+    
+    return content
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line && !line.startsWith('#'))
+      .map(pattern => {
+        // Convert gitignore patterns to glob patterns
+        if (pattern.endsWith('/')) {
+          return pattern.slice(0, -1) + '/**';
+        }
+        return pattern;
+      });
+  } catch {
+    return [];
+  }
 }
 
 function shouldIgnore(filePath: string, patterns: string[]): boolean {

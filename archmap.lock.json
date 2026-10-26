@@ -1,8 +1,6 @@
 {
   "version": "1",
   "modules": [
-    "dist",
-    "node_modules",
     "src/action.ts",
     "src/cli",
     "src/cli.ts",
@@ -13,10 +11,114 @@
     "src/render",
     "src/resolver",
     "src/rules",
-    "src/types.ts",
-    "tsup.config.ts",
-    "vitest.config.ts"
+    "src/types.ts"
   ],
-  "edges": [],
+  "edges": [
+    {
+      "from": "src/action.ts",
+      "to": "src/graph",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/lock",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/parser",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/render",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/resolver",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/rules",
+      "weight": 1
+    },
+    {
+      "from": "src/action.ts",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/graph",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/lock",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/parser",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/render",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/resolver",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/rules",
+      "weight": 1
+    },
+    {
+      "from": "src/cli",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/cli.ts",
+      "to": "src/cli",
+      "weight": 1
+    },
+    {
+      "from": "src/graph",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/lock",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/parser",
+      "to": "src/types.ts",
+      "weight": 2
+    },
+    {
+      "from": "src/render",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/resolver",
+      "to": "src/types.ts",
+      "weight": 1
+    },
+    {
+      "from": "src/rules",
+      "to": "src/types.ts",
+      "weight": 1
+    }
+  ],
   "externalDeps": {}
 }
