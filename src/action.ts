@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { execSync } from 'node:child_process';
