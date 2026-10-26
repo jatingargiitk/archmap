@@ -214,6 +214,21 @@ Not yet. v0.1 supports TypeScript/JavaScript and Python. Go is planned for v0.2.
 
 ---
 
+## Limitations
+
+### Protected Default Branch
+
+If your default branch (e.g., `main`) has branch protection rules enabled, the GitHub Action cannot push `ARCHITECTURE.md` and `archmap.lock.json` updates directly on `push` events.
+
+**Workaround:** Either:
+1. Disable branch protection for the `archmap[bot]` user or GitHub Actions
+2. Only run archmap on `pull_request` events (recommended)
+3. Manually run `archmap accept` locally and commit the changes
+
+The `pull_request` workflow mode (default) is unaffected by branch protection.
+
+---
+
 ## Development
 
 ```bash
