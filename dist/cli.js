@@ -38,7 +38,22 @@ async function runCLI() {
     case "init":
       await initCommand(rootDir);
       break;
+    case "help":
+    case "--help":
+    case "-h":
+      console.log(`Usage: archmap [command]
+
+Commands:
+  render          Generate ARCHITECTURE.md and archmap.lock.json
+  diff [--base]   Show diff against base branch (default: main)
+  check           Check for unapproved changes
+  accept          Accept current changes and update lock
+  init            Initialize archmap in this repository
+`);
+      process.exit(0);
     default:
+      console.error(`Unknown command: ${command}
+`);
       console.log(`Usage: archmap [command]
 
 Commands:
