@@ -106,8 +106,8 @@ async function handlePush(rootDir: string, context: any): Promise<void> {
       } catch {
         console.log('ℹ️  No changes to commit');
       }
-    } catch (error: any) {
-      console.log('⚠️  Could not commit changes:', error.message);
+    } catch (error: unknown) {
+      console.log('⚠️  Could not commit changes:', (error as Error).message);
     }
   }
 }
@@ -255,8 +255,8 @@ async function postOrUpdateComment(context: any, body: string): Promise<void> {
       );
       console.log('✅ Posted new comment');
     }
-  } catch (error: any) {
-    console.log('⚠️  Could not post comment:', error.message);
+  } catch (error: unknown) {
+    console.log('⚠️  Could not post comment:', (error as Error).message);
   }
 }
 

@@ -51,6 +51,7 @@ Commands:
   init            Initialize archmap in this repository
 `);
       process.exit(0);
+      break;
     default:
       console.error(`Unknown command: ${command}
 `);
@@ -103,7 +104,7 @@ async function diffCommand(rootDir, args) {
   const diff = diffLocks(baseLock, currentLock, currentGraph);
   console.log("\nChanges:");
   console.log(`  +${diff.added.length} new edges`);
-  console.log(`  -${diff.removed.length} removed edges`);
+  console.log(`  ${diff.removed.length > 0 ? "-" : ""}${diff.removed.length} removed edges`);
   if (diff.added.length > 0) {
     console.log("\nAdded edges:");
     for (const edge of diff.added) {
@@ -147,7 +148,7 @@ async function checkCommand(rootDir) {
   }
   if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log("\u274C Unapproved changes detected:");
-    console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
+    console.log(`   +${diff.added.length} new edges, ${diff.removed.length > 0 ? "-" : ""}${diff.removed.length} removed edges`);
     if (diff.added.length > 0) {
       console.log("\nAdded edges:");
       for (const edge of diff.added) {
