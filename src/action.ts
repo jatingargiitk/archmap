@@ -388,9 +388,9 @@ async function loadConfig(rootDir: string): Promise<Config> {
     config = {};
   }
 
-  // Override with INPUT_MODE if provided (B7)
+  // Override with INPUT_MODE if explicitly provided (B7)
   const inputMode = process.env.INPUT_MODE;
-  if (inputMode === 'comment' || inputMode === 'gate') {
+  if (inputMode && (inputMode === 'comment' || inputMode === 'gate')) {
     config.mode = inputMode;
   }
 

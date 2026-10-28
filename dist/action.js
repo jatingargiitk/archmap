@@ -328,7 +328,7 @@ async function loadConfig(rootDir) {
     config = {};
   }
   const inputMode = process.env.INPUT_MODE;
-  if (inputMode === "comment" || inputMode === "gate") {
+  if (inputMode && (inputMode === "comment" || inputMode === "gate")) {
     config.mode = inputMode;
   }
   return config;
