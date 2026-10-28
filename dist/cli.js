@@ -12,7 +12,7 @@ import {
   resolveImports,
   writeArchitectureFile,
   writeLockFile
-} from "./chunk-UVZVBM2N.js";
+} from "./chunk-QUFBKU64.js";
 
 // src/cli/index.ts
 import * as fs from "fs/promises";

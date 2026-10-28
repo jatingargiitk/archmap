@@ -13,7 +13,7 @@ import {
   shouldFailCheck,
   writeArchitectureFile,
   writeLockFile
-} from "./chunk-UVZVBM2N.js";
+} from "./chunk-QUFBKU64.js";
 
 // src/action.ts
 import * as fs from "fs/promises";
