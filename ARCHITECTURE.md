@@ -23,7 +23,7 @@ flowchart LR
   src_cli_ts[src/cli.ts] --> src_cli[src/cli]
   src_graph[src/graph] --> src_types_ts[src/types.ts]
   src_lock[src/lock] --> src_types_ts[src/types.ts]
-  src_parser[src/parser] |2| --> |2| src_types_ts[src/types.ts]
+  src_parser[src/parser] -->|2| src_types_ts[src/types.ts]
   src_render[src/render] --> src_types_ts[src/types.ts]
   src_resolver[src/resolver] --> src_types_ts[src/types.ts]
   src_rules[src/rules] --> src_types_ts[src/types.ts]

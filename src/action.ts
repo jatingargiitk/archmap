@@ -45,8 +45,22 @@ async function handlePullRequest(
 
   let baseLock = null;
   try {
+    // Ensure we have the base ref, even in shallow clones
+    const baseRef = `origin/${context.baseRef}`;
+    try {
+      execSync(`git rev-parse --verify ${baseRef}`, { cwd: rootDir, stdio: 'ignore' });
+    } catch {
+      // Base ref not found, try to fetch it
+      console.log(`Fetching base ref ${context.baseRef}...`);
+      try {
+        execSync(`git fetch --no-tags --depth=1 origin ${context.baseRef}`, { cwd: rootDir, stdio: 'pipe' });
+      } catch (fetchError: any) {
+        console.log(`⚠️  Could not fetch base ref: ${fetchError.message}`);
+      }
+    }
+
     const baseLockContent = execSync(
-      `git show origin/${context.baseRef}:archmap.lock.json`,
+      `git show ${baseRef}:archmap.lock.json`,
       { cwd: rootDir, encoding: 'utf-8' }
     );
     baseLock = JSON.parse(baseLockContent);
@@ -57,7 +71,7 @@ async function handlePullRequest(
   const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
 
-  const commentBody = buildCommentBody(diff, violations, currentGraph);
+  const commentBody = buildCommentBody(diff, violations, currentGraph, context);
 
   if (process.env.GITHUB_TOKEN && context.prNumber) {
     await postOrUpdateComment(context, commentBody);
@@ -92,13 +106,13 @@ async function handlePush(rootDir: string, context: any): Promise<void> {
       } catch {
         console.log('ℹ️  No changes to commit');
       }
-    } catch (error: any) {
-      console.log('⚠️  Could not commit changes:', error.message);
+    } catch (error: unknown) {
+      console.log('⚠️  Could not commit changes:', (error as Error).message);
     }
   }
 }
 
-function buildCommentBody(diff: any, violations: any[], _graph: any): string {
+function buildCommentBody(diff: any, violations: any[], _graph: any, context: any): string {
   const lines: string[] = [];
 
   lines.push('## 🗺️ archmap');
@@ -138,10 +152,12 @@ function buildCommentBody(diff: any, violations: any[], _graph: any): string {
       lines.push('#### Added Dependencies');
       lines.push('');
       for (const edge of diff.added) {
-        // Show locations (B6)
+        // Show locations (B6) with absolute blob URLs
         if (edge.locations && edge.locations.length > 0) {
           const loc = edge.locations[0];
-          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+          const [owner, repo] = context.repository.split('/');
+          const blobUrl = `https://github.com/${owner}/${repo}/blob/${context.sha}/${loc.file}#L${loc.line}`;
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${blobUrl}))`);
         } else {
           lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
         }
@@ -239,8 +255,8 @@ async function postOrUpdateComment(context: any, body: string): Promise<void> {
       );
       console.log('✅ Posted new comment');
     }
-  } catch (error: any) {
-    console.log('⚠️  Could not post comment:', error.message);
+  } catch (error: unknown) {
+    console.log('⚠️  Could not post comment:', (error as Error).message);
   }
 }
 
@@ -386,9 +402,9 @@ async function loadConfig(rootDir: string): Promise<Config> {
     config = {};
   }
 
-  // Override with INPUT_MODE if provided (B7)
+  // Override with INPUT_MODE if explicitly provided (B7)
   const inputMode = process.env.INPUT_MODE;
-  if (inputMode === 'comment' || inputMode === 'gate') {
+  if (inputMode && (inputMode === 'comment' || inputMode === 'gate')) {
     config.mode = inputMode;
   }
 

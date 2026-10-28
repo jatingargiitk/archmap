@@ -13,7 +13,7 @@ import {
   shouldFailCheck,
   writeArchitectureFile,
   writeLockFile
-} from "./chunk-UVZVBM2N.js";
+} from "./chunk-QUFBKU64.js";
 
 // src/action.ts
 import * as fs from "fs/promises";
@@ -42,8 +42,19 @@ async function handlePullRequest(rootDir, currentGraph, currentLock, config, con
   console.log("\u{1F4CA} Computing diff...");
   let baseLock = null;
   try {
+    const baseRef = `origin/${context.baseRef}`;
+    try {
+      execSync(`git rev-parse --verify ${baseRef}`, { cwd: rootDir, stdio: "ignore" });
+    } catch {
+      console.log(`Fetching base ref ${context.baseRef}...`);
+      try {
+        execSync(`git fetch --no-tags --depth=1 origin ${context.baseRef}`, { cwd: rootDir, stdio: "pipe" });
+      } catch (fetchError) {
+        console.log(`\u26A0\uFE0F  Could not fetch base ref: ${fetchError.message}`);
+      }
+    }
     const baseLockContent = execSync(
-      `git show origin/${context.baseRef}:archmap.lock.json`,
+      `git show ${baseRef}:archmap.lock.json`,
       { cwd: rootDir, encoding: "utf-8" }
     );
     baseLock = JSON.parse(baseLockContent);
@@ -52,7 +63,7 @@ async function handlePullRequest(rootDir, currentGraph, currentLock, config, con
   }
   const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
-  const commentBody = buildCommentBody(diff, violations, currentGraph);
+  const commentBody = buildCommentBody(diff, violations, currentGraph, context);
   if (process.env.GITHUB_TOKEN && context.prNumber) {
     await postOrUpdateComment(context, commentBody);
   } else {
@@ -86,7 +97,7 @@ async function handlePush(rootDir, context) {
     }
   }
 }
-function buildCommentBody(diff, violations, _graph) {
+function buildCommentBody(diff, violations, _graph, context) {
   const lines = [];
   lines.push("## \u{1F5FA}\uFE0F archmap");
   lines.push("");
@@ -122,7 +133,9 @@ function buildCommentBody(diff, violations, _graph) {
       for (const edge of diff.added) {
         if (edge.locations && edge.locations.length > 0) {
           const loc = edge.locations[0];
-          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+          const [owner, repo] = context.repository.split("/");
+          const blobUrl = `https://github.com/${owner}/${repo}/blob/${context.sha}/${loc.file}#L${loc.line}`;
+          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\` ([${loc.file}:${loc.line}](${blobUrl}))`);
         } else {
           lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\``);
         }
@@ -326,7 +339,7 @@ async function loadConfig(rootDir) {
     config = {};
   }
   const inputMode = process.env.INPUT_MODE;
-  if (inputMode === "comment" || inputMode === "gate") {
+  if (inputMode && (inputMode === "comment" || inputMode === "gate")) {
     config.mode = inputMode;
   }
   return config;

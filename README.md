@@ -8,6 +8,8 @@
 
 archmap commits a living map of your modules and flags every PR—human or AI—that adds a new dependency between them.
 
+![archmap demo](docs/demo.gif)
+
 ---
 
 ## Quick Start
@@ -21,17 +23,25 @@ This creates:
 - ✅ `ARCHITECTURE.md` - Living architecture map ([see ours](./ARCHITECTURE.md))
 - ✅ `archmap.lock.json` - Dependency lockfile
 
-Then:
+The generated workflow:
 
 ```yaml
-# .github/workflows/archmap.yml (auto-generated)
-on: [pull_request, push]
-permissions: { contents: write, pull-requests: write }
+name: archmap
+
+on:
+  pull_request:
+
+permissions:
+  contents: write
+  pull-requests: write
+
 jobs:
   archmap:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: jatingargiitk/archmap@v0
 ```
 
@@ -63,9 +73,7 @@ Think of it as snapshot testing, but for your architecture.
 
 ### After archmap
 
-![archmap demo](docs/demo.gif)
-
-The PR gets a sticky comment showing the new dependency and file location. Now the reviewer knows exactly what changed architecturally, and the decision is explicit.
+The PR gets a sticky comment showing the new dependency with the exact file and line number where the import was added. Now the reviewer knows exactly what changed architecturally, and the decision is explicit.
 
 ---
 
@@ -74,7 +82,7 @@ The PR gets a sticky comment showing the new dependency and file location. Now t
 - ✅ **100% Deterministic** - Same input, same output. No LLM or API key required
 - ✅ **Fast** - Parses with `web-tree-sitter` WASM (TS/JS + Python in v0.1)
 - ✅ **Lockfile Diffing** - Git-friendly JSON lockfile tracks accepted edges
-- ✅ **GitHub Action** - Sticky PR comments show only added/removed edges
+- ✅ **GitHub Action** - Sticky PR comments show added/removed edges with file locations
 - ✅ **Optional Gate Mode** - Fail CI if unapproved edges are added
 - ✅ **Deny Rules** - `deny: { from: "ui/**", to: "db/**" }`
 - ✅ **Living Docs** - `ARCHITECTURE.md` with Mermaid diagram, auto-regenerated
@@ -166,7 +174,7 @@ modules:
 
 ### What about fork PRs?
 
-archmap uses read-only tokens for forks. It posts a comment but cannot update files. The reviewer runs `archmap accept` locally.
+Fork PRs cannot post comments with the default `GITHUB_TOKEN` due to GitHub security restrictions. The workflow will run the check successfully, but comment posting will be skipped. The same architecture diff is visible in the action logs.
 
 ### Does anything leave my runner?
 

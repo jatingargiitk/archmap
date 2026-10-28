@@ -42,8 +42,9 @@ function renderMermaidGraph(graph: Graph): string {
   for (const edge of edgesSorted) {
     const fromId = sanitizeId(edge.from);
     const toId = sanitizeId(edge.to);
-    const label = edge.weight > 1 ? ` |${edge.weight}| ` : ' ';
-    lines.push(`  ${fromId}[${edge.from}]${label}-->${label}${toId}[${edge.to}]`);
+    const label = edge.weight > 1 ? `|${edge.weight}|` : '';
+    const arrow = label ? `-->${label}` : '-->';
+    lines.push(`  ${fromId}[${edge.from}] ${arrow} ${toId}[${edge.to}]`);
   }
 
   if (edgesSorted.length === 0) {
@@ -151,18 +152,22 @@ export function renderDeltaDiagram(
     lines.push(`  ${id}[${module}]`);
   }
 
+  let edgeIndex = 0;
+
   for (const edge of addedEdges) {
     const fromId = sanitizeId(edge.from);
     const toId = sanitizeId(edge.to);
     lines.push(`  ${fromId} ====> ${toId}`);
-    lines.push(`  linkStyle ${lines.length - 2} stroke:#00ff00,stroke-width:3px`);
+    lines.push(`  linkStyle ${edgeIndex} stroke:#00ff00,stroke-width:3px`);
+    edgeIndex++;
   }
 
   for (const edge of removedEdges) {
     const fromId = sanitizeId(edge.from);
     const toId = sanitizeId(edge.to);
     lines.push(`  ${fromId} -.-> ${toId}`);
-    lines.push(`  linkStyle ${lines.length - 2} stroke:#ff0000,stroke-width:2px,stroke-dasharray:5`);
+    lines.push(`  linkStyle ${edgeIndex} stroke:#ff0000,stroke-width:2px,stroke-dasharray:5`);
+    edgeIndex++;
   }
 
   lines.push('```');

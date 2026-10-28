@@ -182,4 +182,62 @@ describe('renderDeltaDiagram', () => {
     expect(output).toContain('====>');
     expect(output).toContain('-.->');
   });
+
+  it('should use correct linkStyle indices', () => {
+    const addedEdges: ModuleEdge[] = [
+      { from: 'A', to: 'B', weight: 1, locations: [] },
+      { from: 'B', to: 'C', weight: 1, locations: [] },
+    ];
+
+    const removedEdges: ModuleEdge[] = [
+      { from: 'D', to: 'E', weight: 1, locations: [] },
+    ];
+
+    const touchedModules = new Set(['A', 'B', 'C', 'D', 'E']);
+
+    const output = renderDeltaDiagram(addedEdges, removedEdges, touchedModules);
+
+    expect(output).toContain('linkStyle 0 stroke:#00ff00');
+    expect(output).toContain('linkStyle 1 stroke:#00ff00');
+    expect(output).toContain('linkStyle 2 stroke:#ff0000');
+  });
+});
+
+describe('weighted edges', () => {
+  it('should render weighted edges with correct Mermaid syntax', () => {
+    const graph: Graph = {
+      modules: [
+        { name: 'A', files: [], fanIn: 0, fanOut: 1, externalDeps: [] },
+        { name: 'B', files: [], fanIn: 1, fanOut: 0, externalDeps: [] },
+      ],
+      edges: [
+        { from: 'A', to: 'B', weight: 3, locations: [] },
+      ],
+      cycles: [],
+    };
+
+    const output = renderMermaid(graph);
+    
+    // Should be A -->|3| B, not A |3| --> |3| B
+    expect(output).toContain('A[A] -->|3| B[B]');
+    expect(output).not.toContain('|3| --> |3|');
+  });
+
+  it('should render edges with weight 1 without labels', () => {
+    const graph: Graph = {
+      modules: [
+        { name: 'A', files: [], fanIn: 0, fanOut: 1, externalDeps: [] },
+        { name: 'B', files: [], fanIn: 1, fanOut: 0, externalDeps: [] },
+      ],
+      edges: [
+        { from: 'A', to: 'B', weight: 1, locations: [] },
+      ],
+      cycles: [],
+    };
+
+    const output = renderMermaid(graph);
+    
+    expect(output).toContain('A[A] --> B[B]');
+    expect(output).not.toContain('|1|');
+  });
 });

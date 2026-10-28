@@ -31,7 +31,6 @@ inputs:
   mode:
     description: 'Mode: comment (default) or gate'
     required: false
-    default: 'comment'
   github-token:
     description: 'GitHub token for posting comments'
     required: false

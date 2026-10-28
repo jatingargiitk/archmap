@@ -31,7 +31,22 @@ export async function runCLI(): Promise<void> {
     case 'init':
       await initCommand(rootDir);
       break;
+    case 'help':
+    case '--help':
+    case '-h':
+      console.log(`Usage: archmap [command]
+
+Commands:
+  render          Generate ARCHITECTURE.md and archmap.lock.json
+  diff [--base]   Show diff against base branch (default: main)
+  check           Check for unapproved changes
+  accept          Accept current changes and update lock
+  init            Initialize archmap in this repository
+`);
+      process.exit(0);
+      break;
     default:
+      console.error(`Unknown command: ${command}\n`);
       console.log(`Usage: archmap [command]
 
 Commands:
@@ -94,7 +109,7 @@ async function diffCommand(rootDir: string, args: string[]): Promise<void> {
   
   console.log('\nChanges:');
   console.log(`  +${diff.added.length} new edges`);
-  console.log(`  -${diff.removed.length} removed edges`);
+  console.log(`  ${diff.removed.length > 0 ? '-' : ''}${diff.removed.length} removed edges`);
   
   if (diff.added.length > 0) {
     console.log('\nAdded edges:');
@@ -151,7 +166,7 @@ async function checkCommand(rootDir: string): Promise<void> {
   // CLI check always fails on unapproved changes, regardless of mode
   if (diff.added.length > 0 || diff.removed.length > 0) {
     console.log('❌ Unapproved changes detected:');
-    console.log(`   +${diff.added.length} new edges, -${diff.removed.length} removed edges`);
+    console.log(`   +${diff.added.length} new edges, ${diff.removed.length > 0 ? '-' : ''}${diff.removed.length} removed edges`);
     if (diff.added.length > 0) {
       console.log('\nAdded edges:');
       for (const edge of diff.added) {
@@ -209,6 +224,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: jatingargiitk/archmap@v0
 `;
   
