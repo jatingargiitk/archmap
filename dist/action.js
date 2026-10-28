@@ -42,8 +42,19 @@ async function handlePullRequest(rootDir, currentGraph, currentLock, config, con
   console.log("\u{1F4CA} Computing diff...");
   let baseLock = null;
   try {
+    const baseRef = `origin/${context.baseRef}`;
+    try {
+      execSync(`git rev-parse --verify ${baseRef}`, { cwd: rootDir, stdio: "ignore" });
+    } catch {
+      console.log(`Fetching base ref ${context.baseRef}...`);
+      try {
+        execSync(`git fetch --no-tags --depth=1 origin ${context.baseRef}`, { cwd: rootDir, stdio: "pipe" });
+      } catch (fetchError) {
+        console.log(`\u26A0\uFE0F  Could not fetch base ref: ${fetchError.message}`);
+      }
+    }
     const baseLockContent = execSync(
-      `git show origin/${context.baseRef}:archmap.lock.json`,
+      `git show ${baseRef}:archmap.lock.json`,
       { cwd: rootDir, encoding: "utf-8" }
     );
     baseLock = JSON.parse(baseLockContent);

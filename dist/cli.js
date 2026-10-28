@@ -192,6 +192,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: jatingargiitk/archmap@v0
 `;
   await fs.writeFile(workflowPath, workflow, "utf-8");

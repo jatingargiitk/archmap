@@ -100,5 +100,8 @@ describe('CLI check command', () => {
     expect(workflowContent).not.toContain('npx @jatingargiitk/archmap render');
     expect(workflowContent).not.toContain('npx @jatingargiitk/archmap check');
     expect(workflowContent).not.toContain('|| true');
+    
+    // Must have fetch-depth: 0 for proper git history
+    expect(workflowContent).toContain('fetch-depth: 0');
   });
 });

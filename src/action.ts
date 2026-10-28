@@ -45,8 +45,22 @@ async function handlePullRequest(
 
   let baseLock = null;
   try {
+    // Ensure we have the base ref, even in shallow clones
+    const baseRef = `origin/${context.baseRef}`;
+    try {
+      execSync(`git rev-parse --verify ${baseRef}`, { cwd: rootDir, stdio: 'ignore' });
+    } catch {
+      // Base ref not found, try to fetch it
+      console.log(`Fetching base ref ${context.baseRef}...`);
+      try {
+        execSync(`git fetch --no-tags --depth=1 origin ${context.baseRef}`, { cwd: rootDir, stdio: 'pipe' });
+      } catch (fetchError: any) {
+        console.log(`⚠️  Could not fetch base ref: ${fetchError.message}`);
+      }
+    }
+
     const baseLockContent = execSync(
-      `git show origin/${context.baseRef}:archmap.lock.json`,
+      `git show ${baseRef}:archmap.lock.json`,
       { cwd: rootDir, encoding: 'utf-8' }
     );
     baseLock = JSON.parse(baseLockContent);
