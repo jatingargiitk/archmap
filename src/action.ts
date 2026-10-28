@@ -57,7 +57,7 @@ async function handlePullRequest(
   const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
 
-  const commentBody = buildCommentBody(diff, violations, currentGraph);
+  const commentBody = buildCommentBody(diff, violations, currentGraph, context);
 
   if (process.env.GITHUB_TOKEN && context.prNumber) {
     await postOrUpdateComment(context, commentBody);
@@ -98,7 +98,7 @@ async function handlePush(rootDir: string, context: any): Promise<void> {
   }
 }
 
-function buildCommentBody(diff: any, violations: any[], _graph: any): string {
+function buildCommentBody(diff: any, violations: any[], _graph: any, context: any): string {
   const lines: string[] = [];
 
   lines.push('## 🗺️ archmap');
@@ -138,10 +138,12 @@ function buildCommentBody(diff: any, violations: any[], _graph: any): string {
       lines.push('#### Added Dependencies');
       lines.push('');
       for (const edge of diff.added) {
-        // Show locations (B6)
+        // Show locations (B6) with absolute blob URLs
         if (edge.locations && edge.locations.length > 0) {
           const loc = edge.locations[0];
-          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+          const [owner, repo] = context.repository.split('/');
+          const blobUrl = `https://github.com/${owner}/${repo}/blob/${context.sha}/${loc.file}#L${loc.line}`;
+          lines.push(`- \`${edge.from}\` → \`${edge.to}\` ([${loc.file}:${loc.line}](${blobUrl}))`);
         } else {
           lines.push(`- \`${edge.from}\` → \`${edge.to}\``);
         }

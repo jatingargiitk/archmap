@@ -52,7 +52,7 @@ async function handlePullRequest(rootDir, currentGraph, currentLock, config, con
   }
   const diff = diffLocks(baseLock, currentLock, currentGraph);
   const violations = checkRules(currentGraph.edges, config);
-  const commentBody = buildCommentBody(diff, violations, currentGraph);
+  const commentBody = buildCommentBody(diff, violations, currentGraph, context);
   if (process.env.GITHUB_TOKEN && context.prNumber) {
     await postOrUpdateComment(context, commentBody);
   } else {
@@ -86,7 +86,7 @@ async function handlePush(rootDir, context) {
     }
   }
 }
-function buildCommentBody(diff, violations, _graph) {
+function buildCommentBody(diff, violations, _graph, context) {
   const lines = [];
   lines.push("## \u{1F5FA}\uFE0F archmap");
   lines.push("");
@@ -122,7 +122,9 @@ function buildCommentBody(diff, violations, _graph) {
       for (const edge of diff.added) {
         if (edge.locations && edge.locations.length > 0) {
           const loc = edge.locations[0];
-          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\` ([${loc.file}:${loc.line}](${loc.file}#L${loc.line}))`);
+          const [owner, repo] = context.repository.split("/");
+          const blobUrl = `https://github.com/${owner}/${repo}/blob/${context.sha}/${loc.file}#L${loc.line}`;
+          lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\` ([${loc.file}:${loc.line}](${blobUrl}))`);
         } else {
           lines.push(`- \`${edge.from}\` \u2192 \`${edge.to}\``);
         }
